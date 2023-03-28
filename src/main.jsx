@@ -14,7 +14,7 @@ import App from "./App";
 
 const BASE_URL = Boolean(process.env.NODE_ENV === "production")
   ? "https://imzihad21.is-a.dev/nestgql/"
-  : "http://localhost:4000/graphql/";
+  : "http://192.168.0.105:4000/graphql";
 
 const httpLink = new HttpLink({
   uri: BASE_URL,

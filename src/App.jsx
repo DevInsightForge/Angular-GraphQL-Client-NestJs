@@ -1,6 +1,17 @@
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { Box, Container, TextField, Typography } from "@mui/material";
-import React, { useEffect } from "react";
+import {
+  Avatar,
+  Box,
+  Container,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  TextField,
+  Typography,
+} from "@mui/material";
+import moment from "moment";
+import React, { useEffect, useRef } from "react";
 
 const MESSAGES_SUBSCRIPTION = gql`
   subscription Messages {
@@ -35,6 +46,7 @@ const App = () => {
   //   onData: ({ data }) =>
   //     setMessages((prev) => [...prev, data?.data?.messageAdded]),
   // });
+  const scrollRef = useRef();
 
   const [messageMutation] = useMutation(MESSAGES_MUTATION);
 
@@ -61,6 +73,14 @@ const App = () => {
     });
   }, []);
 
+  useEffect(() => {
+    scrollRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [messages]);
+
   const onKeyPress = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -80,12 +100,60 @@ const App = () => {
 
   return (
     <Container>
-      <Box>
-        {messages?.map((item) => {
-          return <Typography>{item?.content}</Typography>;
+      <List
+        sx={{
+          width: "100%",
+          maxHeight: "80vh",
+          overflowY: "auto",
+        }}
+      >
+        {messages?.map((item, idx) => {
+          return (
+            <ListItem
+              key={idx}
+              alignItems="flex-start"
+              sx={{
+                bgcolor: "background.paper",
+                mb: "10px",
+                border: 1,
+                borderColor: "#00000060",
+                borderRadius: "10px",
+              }}
+            >
+              <ListItemAvatar>
+                <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+              </ListItemAvatar>
+              <ListItemText
+                primary={item?.content}
+                secondary={
+                  <Typography
+                    sx={{ display: "inline" }}
+                    component="span"
+                    variant="body2"
+                    color="text.primary"
+                  >
+                    {moment(item?.sentAt).fromNow()}
+                  </Typography>
+                }
+              />
+            </ListItem>
+          );
         })}
-      </Box>
-      <TextField onKeyPress={onKeyPress} />
+        <Box ref={scrollRef} sx={{ float: "left", clear: "both" }} />
+      </List>
+      <TextField
+        onKeyPress={onKeyPress}
+        sx={{
+          width: 1,
+          height: "50px",
+          mt: "10px",
+          "& fieldset": {
+            border: 1,
+            borderColor: "#00000060",
+            borderRadius: "10px",
+          },
+        }}
+      />
     </Container>
   );
 };
