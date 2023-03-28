@@ -13,7 +13,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 
 const BASE_URL = Boolean(process.env.NODE_ENV === "production")
-  ? "https://imzihad21.is-a.dev/nestgql/"
+  ? "https://nestgql.onrender.com/graphql"
   : "http://192.168.0.105:4000/graphql";
 
 const httpLink = new HttpLink({
