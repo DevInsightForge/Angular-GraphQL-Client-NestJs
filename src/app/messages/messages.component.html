@@ -1,0 +1,12 @@
+<div id="message-container">
+  <div *ngIf="(messages | async)?.length">
+    <div *ngFor="let message of messages | async" class="message-body">
+      <p class="message-content">
+        {{ message.content }}
+      </p>
+      <p class="message-sent-at">
+        {{ message?.sentAt | amTimeAgo }}
+      </p>
+    </div>
+  </div>
+</div>
