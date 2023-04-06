@@ -1,0 +1,13 @@
+query Messages($take: Int!) {
+  messages(take: $take) {
+    id
+    content
+    sentAt
+  }
+}
+
+mutation AddNewMessage($newMessageData: NewMessageInput!) {
+  addMessage(newMessageData: $newMessageData) {
+    content
+  }
+}

@@ -1,7 +1,0 @@
-query Messages($take: Int!) {
-  messages(take: $take) {
-    id
-    content
-    sentAt
-  }
-}

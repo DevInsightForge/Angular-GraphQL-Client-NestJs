@@ -4,6 +4,12 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  position: relative;
+
+  .scroll-anchor {
+    position: absolute;
+    bottom: 200;
+  }
 
   .message-content {
     padding: 0;

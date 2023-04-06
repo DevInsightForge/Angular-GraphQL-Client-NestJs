@@ -1,5 +1,5 @@
-<div id="message-container">
-  <div *ngIf="(messages | async)?.length">
+<div>
+  <div *ngIf="(messages | async)?.length" id="message-container">
     <div *ngFor="let message of messages | async" class="message-body">
       <p class="message-content">
         {{ message.content }}
@@ -8,5 +8,14 @@
         {{ message?.sentAt | amTimeAgo }}
       </p>
     </div>
+    <div #scrollAnchor id="scroll-anchor"></div>
   </div>
+  <form [formGroup]="newMsgForm" (ngSubmit)="onSubmit()">
+    <div>
+      <label for="content"> Content </label>
+      <input id="content" type="text" formControlName="content" autofocus />
+    </div>
+
+    <button class="button" type="submit">Send Message</button>
+  </form>
 </div>

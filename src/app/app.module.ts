@@ -1,7 +1,7 @@
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-
 import { HttpClientModule } from '@angular/common/http';
+import { NgModule } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { BrowserModule } from '@angular/platform-browser';
 import { MomentModule } from 'ngx-moment';
 import { AppRoutingModule } from '../utilities/modules/app-routing.module';
 import { GraphQLModule } from '../utilities/modules/graphql.module';
@@ -16,6 +16,7 @@ import { MessagesComponent } from './messages/messages.component';
     GraphQLModule,
     HttpClientModule,
     MomentModule,
+    ReactiveFormsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

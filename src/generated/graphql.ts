@@ -132,6 +132,13 @@ export type MessagesQueryVariables = Exact<{
 
 export type MessagesQuery = { __typename?: 'Query', messages: Array<{ __typename?: 'Message', id: string, content: string, sentAt: any }> };
 
+export type AddNewMessageMutationVariables = Exact<{
+  newMessageData: NewMessageInput;
+}>;
+
+
+export type AddNewMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Message', content: string } };
+
 export const MessagesDocument = gql`
     query Messages($take: Int!) {
   messages(take: $take) {
@@ -147,6 +154,24 @@ export const MessagesDocument = gql`
   })
   export class MessagesGQL extends Apollo.Query<MessagesQuery, MessagesQueryVariables> {
     override document = MessagesDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const AddNewMessageDocument = gql`
+    mutation AddNewMessage($newMessageData: NewMessageInput!) {
+  addMessage(newMessageData: $newMessageData) {
+    content
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class AddNewMessageGQL extends Apollo.Mutation<AddNewMessageMutation, AddNewMessageMutationVariables> {
+    override document = AddNewMessageDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);
