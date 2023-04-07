@@ -1,9 +1,10 @@
 import { NgModule } from '@angular/core';
 import { ApolloClientOptions, InMemoryCache, split } from '@apollo/client/core';
-import { WebSocketLink } from '@apollo/client/link/ws';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { APOLLO_FLAGS, APOLLO_OPTIONS, ApolloModule } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
+import { createClient } from 'graphql-ws';
 
 const BASE_URL = 'http://localhost:4000/graphql'; // <-- add the URL of the GraphQL server here
 
@@ -26,12 +27,11 @@ const BASE_URL = 'http://localhost:4000/graphql'; // <-- add the URL of the Grap
         });
 
         // Create a WebSocket link:
-        const ws = new WebSocketLink({
-          uri: BASE_URL.replace('http', 'ws'),
-          options: {
-            reconnect: true,
-          },
-        });
+        const ws = new GraphQLWsLink(
+          createClient({
+            url: BASE_URL.replace('http', 'ws'),
+          })
+        );
 
         // using the ability to split links, you can send data to each link
         // depending on what kind of operation is being sent

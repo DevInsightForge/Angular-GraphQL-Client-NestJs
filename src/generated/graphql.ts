@@ -142,7 +142,7 @@ export type AddNewMessageMutation = { __typename?: 'Mutation', addMessage: { __t
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', content: string } };
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', id: string, content: string, sentAt: any } };
 
 export const MessagesDocument = gql`
     query Messages($take: Int!) {
@@ -185,7 +185,9 @@ export const AddNewMessageDocument = gql`
 export const MessageAddedDocument = gql`
     subscription MessageAdded {
   messageAdded {
+    id
     content
+    sentAt
   }
 }
     `;

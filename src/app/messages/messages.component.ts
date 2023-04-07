@@ -1,8 +1,16 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
+import { QueryRef } from 'apollo-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { AddNewMessageGQL, Message, MessagesGQL } from 'src/generated/graphql';
+import {
+  AddNewMessageGQL,
+  Message,
+  MessageAddedDocument,
+  MessagesGQL,
+  MessagesQuery,
+  MessagesQueryVariables,
+} from 'src/generated/graphql';
 
 @Component({
   selector: 'app-messages',
@@ -10,7 +18,9 @@ import { AddNewMessageGQL, Message, MessagesGQL } from 'src/generated/graphql';
   styleUrls: ['./messages.component.scss'],
 })
 export class MessagesComponent implements OnInit {
+  private messageQuery: QueryRef<MessagesQuery, MessagesQueryVariables>;
   messages: Observable<Message[]>;
+  loading: boolean;
 
   @ViewChild('scrollAnchor') scrollRef: ElementRef;
 
@@ -18,7 +28,9 @@ export class MessagesComponent implements OnInit {
     private messageGQL: MessagesGQL,
     private messageMutation: AddNewMessageGQL,
     private formBuilder: FormBuilder
-  ) {}
+  ) {
+    this.messageQuery = this.messageGQL.watch({ take: 20 });
+  }
 
   newMsgForm = this.formBuilder.group({
     content: '',
@@ -27,23 +39,11 @@ export class MessagesComponent implements OnInit {
   onSubmit(): void {
     if (this.newMsgForm.value.content) {
       this.messageMutation
-        .mutate(
-          {
-            newMessageData: {
-              content: this.newMsgForm.value.content,
-            },
+        .mutate({
+          newMessageData: {
+            content: this.newMsgForm.value.content,
           },
-          {
-            refetchQueries: [
-              {
-                query: this.messageGQL.document,
-                variables: {
-                  take: 20,
-                },
-              },
-            ],
-          }
-        )
+        })
         .subscribe();
       this.newMsgForm.reset();
     }
@@ -60,11 +60,24 @@ export class MessagesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.messages = this.messageGQL.watch({ take: 20 }).valueChanges.pipe(
+    this.messages = this.messageQuery.valueChanges.pipe(
       map((result) => {
         this.scrollToLatest();
+        this.loading = false;
         return result?.data?.messages;
       })
     );
+    this.messageQuery.subscribeToMore({
+      document: MessageAddedDocument,
+      updateQuery: (prev, { subscriptionData }: any) => {
+        if (!subscriptionData.data) return prev;
+        const newItem = subscriptionData.data.messageAdded;
+
+        this.scrollToLatest();
+        return Object.assign({}, prev, {
+          messages: [...prev.messages, newItem],
+        });
+      },
+    });
   }
 }
