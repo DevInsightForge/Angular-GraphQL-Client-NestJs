@@ -64,18 +64,20 @@ export class MessagesComponent implements OnInit {
       this.messages = data?.messages;
       this.errors = errors;
       this.scrollToLatest();
-    });
-    this.messageQuery.subscribeToMore({
-      document: MessageAddedDocument,
-      updateQuery: (prev, { subscriptionData }: any) => {
-        if (!subscriptionData.data) return prev;
-        const newItem = subscriptionData.data.messageAdded;
+      if (!loading && !errors?.length) {
+        this.messageQuery.subscribeToMore({
+          document: MessageAddedDocument,
+          updateQuery: (prev, { subscriptionData }: any) => {
+            if (!subscriptionData.data) return prev;
+            const newItem = subscriptionData.data.messageAdded;
 
-        this.scrollToLatest();
-        return Object.assign({}, prev, {
-          messages: [...prev.messages, newItem],
+            this.scrollToLatest();
+            return Object.assign({}, prev, {
+              messages: [...prev.messages, newItem],
+            });
+          },
         });
-      },
+      }
     });
   }
 }
