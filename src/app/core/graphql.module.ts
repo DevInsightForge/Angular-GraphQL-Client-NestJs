@@ -1,14 +1,15 @@
 import { HttpHeaders } from '@angular/common/http';
-import { NgModule } from '@angular/core';
+import { NgModule, isDevMode } from '@angular/core';
 import { ApolloClientOptions, InMemoryCache, split } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { APOLLO_FLAGS, APOLLO_OPTIONS, ApolloModule } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { createClient } from 'graphql-ws';
-import { environment } from 'src/environments/environment';
 
-const BASE_URL = environment.BASE_URL; // <-- add the URL of the GraphQL server here
+const BASE_URL = isDevMode()
+  ? 'http://localhost:4000/graphql'
+  : 'https://imzihad21.is-a.dev/graphql';
 
 @NgModule({
   exports: [ApolloModule],
