@@ -1,3 +1,4 @@
+import { HttpHeaders } from '@angular/common/http';
 import { NgModule } from '@angular/core';
 import { ApolloClientOptions, InMemoryCache, split } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
@@ -25,12 +26,20 @@ const BASE_URL = environment.BASE_URL; // <-- add the URL of the GraphQL server 
         // Create an http link:
         const http = httpLink.create({
           uri: BASE_URL,
+          headers: new HttpHeaders({
+            Authorization:
+              'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJlNjY2NTVmLWJlYjEtNGM5ZC05MGUxLTUzOTNiOTcwZTFlYSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjgwODg4NTA2LCJleHAiOjE2ODA4OTIxMDZ9.AVaoDNYeo20Y-xrVClcVQzLIiPvQyZGeAhDkTU_jbQ0',
+          }),
         });
 
         // Create a WebSocket link:
         const ws = new GraphQLWsLink(
           createClient({
             url: BASE_URL.replace('http', 'ws'),
+            connectionParams: {
+              Authorization:
+                'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImJlNjY2NTVmLWJlYjEtNGM5ZC05MGUxLTUzOTNiOTcwZTFlYSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjgwODg4NTA2LCJleHAiOjE2ODA4OTIxMDZ9.AVaoDNYeo20Y-xrVClcVQzLIiPvQyZGeAhDkTU_jbQ0',
+            },
           })
         );
 

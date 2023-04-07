@@ -3,9 +3,9 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { MomentModule } from 'ngx-moment';
-import { AppRoutingModule } from '../utilities/modules/app-routing.module';
-import { GraphQLModule } from '../utilities/modules/graphql.module';
 import { AppComponent } from './app.component';
+import { AppRoutingModule } from './core/app-routing.module';
+import { GraphQLModule } from './core/graphql.module';
 import { MessagesComponent } from './messages/messages.component';
 
 @NgModule({
