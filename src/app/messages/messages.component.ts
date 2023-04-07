@@ -1,8 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { QueryRef } from 'apollo-angular';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 import {
   AddNewMessageGQL,
   Message,
@@ -19,8 +17,9 @@ import {
 })
 export class MessagesComponent implements OnInit {
   private messageQuery: QueryRef<MessagesQuery, MessagesQueryVariables>;
-  messages: Observable<Message[]>;
+  messages: Message[];
   loading: boolean;
+  errors: any;
 
   @ViewChild('scrollAnchor') scrollRef: ElementRef;
 
@@ -60,13 +59,12 @@ export class MessagesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.messages = this.messageQuery.valueChanges.pipe(
-      map((result) => {
-        this.scrollToLatest();
-        this.loading = false;
-        return result?.data?.messages;
-      })
-    );
+    this.messageQuery.valueChanges.subscribe(({ data, loading, errors }) => {
+      this.loading = loading;
+      this.messages = data?.messages;
+      this.errors = errors;
+      this.scrollToLatest();
+    });
     this.messageQuery.subscribeToMore({
       document: MessageAddedDocument,
       updateQuery: (prev, { subscriptionData }: any) => {

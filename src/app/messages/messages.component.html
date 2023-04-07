@@ -1,6 +1,13 @@
-<div>
-  <div *ngIf="(messages | async)?.length" id="message-container">
-    <div *ngFor="let message of messages | async" class="message-body">
+<div *ngIf="loading">Loading..</div>
+<div *ngIf="errors">
+  Something went wrong!
+  <p *ngFor="let error of errors">
+    {{ error.message }}
+  </p>
+</div>
+<div *ngIf="!loading && !errors">
+  <div *ngIf="messages?.length" id="message-container">
+    <div *ngFor="let message of messages" class="message-body">
       <p class="message-content">
         {{ message.content }}
       </p>
