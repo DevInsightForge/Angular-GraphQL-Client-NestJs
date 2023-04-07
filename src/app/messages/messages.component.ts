@@ -51,7 +51,7 @@ export class MessagesComponent implements OnInit {
 
   scrollToLatest() {
     setTimeout(() => {
-      this.scrollRef.nativeElement.scrollIntoView({
+      this.scrollRef?.nativeElement?.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
         inline: 'nearest',

@@ -11,3 +11,9 @@ mutation AddNewMessage($newMessageData: NewMessageInput!) {
     content
   }
 }
+
+subscription MessageAdded {
+  messageAdded {
+    content
+  }
+}
