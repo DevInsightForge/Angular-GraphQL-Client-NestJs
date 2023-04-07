@@ -52,6 +52,12 @@ const BASE_URL = environment.BASE_URL; // <-- add the URL of the GraphQL server 
           link,
           cache: new InMemoryCache(),
           credentials: 'include',
+          defaultOptions: {
+            watchQuery: {
+              fetchPolicy: 'network-only',
+              errorPolicy: 'all',
+            },
+          },
         };
 
         return apolloConfig;
