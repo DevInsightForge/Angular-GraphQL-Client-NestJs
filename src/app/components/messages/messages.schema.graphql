@@ -3,12 +3,20 @@ query Messages($take: Int!) {
     id
     content
     sentAt
+    user {
+      id
+    }
   }
 }
 
 mutation AddNewMessage($newMessageData: NewMessageInput!) {
   addMessage(newMessageData: $newMessageData) {
+    id
     content
+    sentAt
+    user {
+      id
+    }
   }
 }
 
@@ -17,5 +25,8 @@ subscription MessageAdded {
     id
     content
     sentAt
+    user {
+      id
+    }
   }
 }

@@ -17,6 +17,12 @@ export type Scalars = {
   DateTime: any;
 };
 
+export type JwtTokens = {
+  __typename?: 'JwtTokens';
+  accessToken: Scalars['String'];
+  refreshToken: Scalars['String'];
+};
+
 export type LoginInput = {
   email: Scalars['String'];
   password: Scalars['String'];
@@ -28,14 +34,20 @@ export type Message = {
   content: Scalars['String'];
   id: Scalars['ID'];
   sentAt: Scalars['DateTime'];
+  user: MessageUser;
+};
+
+export type MessageUser = {
+  __typename?: 'MessageUser';
+  id: Scalars['ID'];
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Message;
-  login?: Maybe<User>;
-  refreshAccessToken?: Maybe<Scalars['Boolean']>;
-  register?: Maybe<User>;
+  login: JwtTokens;
+  refreshAccessToken?: Maybe<Scalars['String']>;
+  register: JwtTokens;
   removeMessage: Scalars['Boolean'];
 };
 
@@ -47,6 +59,11 @@ export type MutationAddMessageArgs = {
 
 export type MutationLoginArgs = {
   input: LoginInput;
+};
+
+
+export type MutationRefreshAccessTokenArgs = {
+  refreshToken: Scalars['String'];
 };
 
 
@@ -66,7 +83,6 @@ export type NewMessageInput = {
 export type Query = {
   __typename?: 'Query';
   allUsers: Array<User>;
-  message: Message;
   messages: Array<Message>;
   userSessions: Array<RefreshToken>;
 };
@@ -75,11 +91,6 @@ export type Query = {
 export type QueryAllUsersArgs = {
   skip?: InputMaybe<Scalars['Int']>;
   take?: InputMaybe<Scalars['Int']>;
-};
-
-
-export type QueryMessageArgs = {
-  id: Scalars['String'];
 };
 
 
@@ -125,31 +136,90 @@ export enum UserRole {
   User = 'user'
 }
 
+export type LoginMutationVariables = Exact<{
+  input: LoginInput;
+}>;
+
+
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'JwtTokens', refreshToken: string, accessToken: string } };
+
+export type RefreshAccessTokenMutationVariables = Exact<{
+  refreshToken: Scalars['String'];
+}>;
+
+
+export type RefreshAccessTokenMutation = { __typename?: 'Mutation', refreshAccessToken?: string | null };
+
 export type MessagesQueryVariables = Exact<{
   take: Scalars['Int'];
 }>;
 
 
-export type MessagesQuery = { __typename?: 'Query', messages: Array<{ __typename?: 'Message', id: string, content: string, sentAt: any }> };
+export type MessagesQuery = { __typename?: 'Query', messages: Array<{ __typename?: 'Message', id: string, content: string, sentAt: any, user: { __typename?: 'MessageUser', id: string } }> };
 
 export type AddNewMessageMutationVariables = Exact<{
   newMessageData: NewMessageInput;
 }>;
 
 
-export type AddNewMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Message', content: string } };
+export type AddNewMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Message', id: string, content: string, sentAt: any, user: { __typename?: 'MessageUser', id: string } } };
 
 export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', id: string, content: string, sentAt: any } };
+export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', id: string, content: string, sentAt: any, user: { __typename?: 'MessageUser', id: string } } };
 
+export type RegisterMutationVariables = Exact<{
+  input: RegisterInput;
+}>;
+
+
+export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'JwtTokens', refreshToken: string, accessToken: string } };
+
+export const LoginDocument = gql`
+    mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    refreshToken
+    accessToken
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class LoginGQL extends Apollo.Mutation<LoginMutation, LoginMutationVariables> {
+    override document = LoginDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const RefreshAccessTokenDocument = gql`
+    mutation RefreshAccessToken($refreshToken: String!) {
+  refreshAccessToken(refreshToken: $refreshToken)
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class RefreshAccessTokenGQL extends Apollo.Mutation<RefreshAccessTokenMutation, RefreshAccessTokenMutationVariables> {
+    override document = RefreshAccessTokenDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
 export const MessagesDocument = gql`
     query Messages($take: Int!) {
   messages(take: $take) {
     id
     content
     sentAt
+    user {
+      id
+    }
   }
 }
     `;
@@ -167,7 +237,12 @@ export const MessagesDocument = gql`
 export const AddNewMessageDocument = gql`
     mutation AddNewMessage($newMessageData: NewMessageInput!) {
   addMessage(newMessageData: $newMessageData) {
+    id
     content
+    sentAt
+    user {
+      id
+    }
   }
 }
     `;
@@ -188,6 +263,9 @@ export const MessageAddedDocument = gql`
     id
     content
     sentAt
+    user {
+      id
+    }
   }
 }
     `;
@@ -197,6 +275,25 @@ export const MessageAddedDocument = gql`
   })
   export class MessageAddedGQL extends Apollo.Subscription<MessageAddedSubscription, MessageAddedSubscriptionVariables> {
     override document = MessageAddedDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const RegisterDocument = gql`
+    mutation Register($input: RegisterInput!) {
+  register(input: $input) {
+    refreshToken
+    accessToken
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class RegisterGQL extends Apollo.Mutation<RegisterMutation, RegisterMutationVariables> {
+    override document = RegisterDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);
