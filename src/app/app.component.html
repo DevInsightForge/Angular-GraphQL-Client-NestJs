@@ -1,10 +1,14 @@
 <div id="app-container">
-  <p>
-    {{ loading }}
-  </p>
-  <p>
+  <span>
     {{ user.email }}
-  </p>
-  <p>{{ user.id }}</p>
+  </span>
+  <span>{{ user.id }}</span>
+  <div>
+    <a [routerLink]="['/']" routerLinkActive="router-link-active">Home</a>
+    <a [routerLink]="['/auth']" routerLinkActive="router-link-active">Login</a>
+    <a [routerLink]="['/auth/register']" routerLinkActive="router-link-active"
+      >Register</a
+    >
+  </div>
   <router-outlet></router-outlet>
 </div>
