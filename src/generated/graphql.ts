@@ -84,6 +84,7 @@ export type Query = {
   __typename?: 'Query';
   allUsers: Array<User>;
   messages: Array<Message>;
+  userProfile: User;
   userSessions: Array<RefreshToken>;
 };
 
@@ -136,20 +137,6 @@ export enum UserRole {
   User = 'user'
 }
 
-export type LoginMutationVariables = Exact<{
-  input: LoginInput;
-}>;
-
-
-export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'JwtTokens', refreshToken: string, accessToken: string } };
-
-export type RefreshAccessTokenMutationVariables = Exact<{
-  refreshToken: Scalars['String'];
-}>;
-
-
-export type RefreshAccessTokenMutation = { __typename?: 'Mutation', refreshAccessToken?: string | null };
-
 export type MessagesQueryVariables = Exact<{
   take: Scalars['Int'];
 }>;
@@ -169,6 +156,11 @@ export type MessageAddedSubscriptionVariables = Exact<{ [key: string]: never; }>
 
 export type MessageAddedSubscription = { __typename?: 'Subscription', messageAdded: { __typename?: 'Message', id: string, content: string, sentAt: any, user: { __typename?: 'MessageUser', id: string } } };
 
+export type UserProfileQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UserProfileQuery = { __typename?: 'Query', userProfile: { __typename?: 'User', id: string, email: string, dateJoined?: any | null, lastLogin?: any | null, isActive?: boolean | null, role?: UserRole | null, isSuperadmin?: boolean | null, isAdmin?: boolean | null } };
+
 export type RegisterMutationVariables = Exact<{
   input: RegisterInput;
 }>;
@@ -176,41 +168,20 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'JwtTokens', refreshToken: string, accessToken: string } };
 
-export const LoginDocument = gql`
-    mutation Login($input: LoginInput!) {
-  login(input: $input) {
-    refreshToken
-    accessToken
-  }
-}
-    `;
+export type LoginMutationVariables = Exact<{
+  input: LoginInput;
+}>;
 
-  @Injectable({
-    providedIn: 'root'
-  })
-  export class LoginGQL extends Apollo.Mutation<LoginMutation, LoginMutationVariables> {
-    override document = LoginDocument;
-    
-    constructor(apollo: Apollo.Apollo) {
-      super(apollo);
-    }
-  }
-export const RefreshAccessTokenDocument = gql`
-    mutation RefreshAccessToken($refreshToken: String!) {
-  refreshAccessToken(refreshToken: $refreshToken)
-}
-    `;
 
-  @Injectable({
-    providedIn: 'root'
-  })
-  export class RefreshAccessTokenGQL extends Apollo.Mutation<RefreshAccessTokenMutation, RefreshAccessTokenMutationVariables> {
-    override document = RefreshAccessTokenDocument;
-    
-    constructor(apollo: Apollo.Apollo) {
-      super(apollo);
-    }
-  }
+export type LoginMutation = { __typename?: 'Mutation', login: { __typename?: 'JwtTokens', refreshToken: string, accessToken: string } };
+
+export type RefreshAccessTokenMutationVariables = Exact<{
+  refreshToken: Scalars['String'];
+}>;
+
+
+export type RefreshAccessTokenMutation = { __typename?: 'Mutation', refreshAccessToken?: string | null };
+
 export const MessagesDocument = gql`
     query Messages($take: Int!) {
   messages(take: $take) {
@@ -280,6 +251,31 @@ export const MessageAddedDocument = gql`
       super(apollo);
     }
   }
+export const UserProfileDocument = gql`
+    query UserProfile {
+  userProfile {
+    id
+    email
+    dateJoined
+    lastLogin
+    isActive
+    role
+    isSuperadmin
+    isAdmin
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class UserProfileGQL extends Apollo.Query<UserProfileQuery, UserProfileQueryVariables> {
+    override document = UserProfileDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
 export const RegisterDocument = gql`
     mutation Register($input: RegisterInput!) {
   register(input: $input) {
@@ -294,6 +290,41 @@ export const RegisterDocument = gql`
   })
   export class RegisterGQL extends Apollo.Mutation<RegisterMutation, RegisterMutationVariables> {
     override document = RegisterDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const LoginDocument = gql`
+    mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    refreshToken
+    accessToken
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class LoginGQL extends Apollo.Mutation<LoginMutation, LoginMutationVariables> {
+    override document = LoginDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const RefreshAccessTokenDocument = gql`
+    mutation RefreshAccessToken($refreshToken: String!) {
+  refreshAccessToken(refreshToken: $refreshToken)
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class RefreshAccessTokenGQL extends Apollo.Mutation<RefreshAccessTokenMutation, RefreshAccessTokenMutationVariables> {
+    override document = RefreshAccessTokenDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);

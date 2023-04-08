@@ -1,0 +1,30 @@
+query UserProfile {
+  userProfile {
+    id
+    email
+    dateJoined
+    lastLogin
+    isActive
+    role
+    isSuperadmin
+    isAdmin
+  }
+}
+
+mutation Register($input: RegisterInput!) {
+  register(input: $input) {
+    refreshToken
+    accessToken
+  }
+}
+
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    refreshToken
+    accessToken
+  }
+}
+
+mutation RefreshAccessToken($refreshToken: String!) {
+  refreshAccessToken(refreshToken: $refreshToken)
+}

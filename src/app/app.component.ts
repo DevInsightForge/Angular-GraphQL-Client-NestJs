@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { Store } from '@ngxs/store';
+import { User } from 'src/generated/graphql';
+import { AuthState } from './store/authUser/authUser.state';
 
 @Component({
   selector: 'app-root',
@@ -6,5 +9,13 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-  title = 'ng-message';
+  user: User;
+  loading: boolean;
+
+  constructor(private store: Store) {
+    this.store.select(AuthState).subscribe(({ loading, user }) => {
+      this.user = user;
+      this.loading = loading;
+    });
+  }
 }

@@ -1,38 +1,79 @@
 import { Injectable } from '@angular/core';
-import { Selector, State } from '@ngxs/store';
-
+import { Action, NgxsOnInit, Selector, State, StateContext } from '@ngxs/store';
+import { mergeMap } from 'rxjs';
+import {
+  LoginGQL,
+  RegisterGQL,
+  User,
+  UserProfileGQL,
+} from 'src/generated/graphql';
+import { JwtTokenActions } from '../jwtTokens/jwtTokens.actions';
 import { AuthUser } from './authUser.actions';
 
-@State<AuthUser.AuthStateModel>({
-  name: 'auth',
+interface AuthStateModel {
+  loading: boolean;
+  user: Partial<User>;
+}
+
+export type AuthStateContext = StateContext<AuthStateModel>;
+
+@State<AuthStateModel>({
+  name: 'AuthUser',
   defaults: {
-    token: null,
-    username: null,
+    loading: true,
+    user: {},
   },
 })
 @Injectable()
-export class AuthState {
-  @Selector()
-  static token(state: AuthUser.AuthStateModel): string | null {
-    return state.token;
+export class AuthState implements NgxsOnInit {
+  constructor(
+    private readonly userProfileQuery: UserProfileGQL,
+    private readonly userLoginMutation: LoginGQL,
+    private readonly userRegisterMutation: RegisterGQL
+  ) {}
+
+  private fetchUser(ctx: AuthStateContext) {
+    this.userProfileQuery.fetch().subscribe(({ data, loading }) => {
+      ctx.patchState({
+        loading,
+        user: data?.userProfile ?? {},
+      });
+    });
+  }
+
+  ngxsOnInit(ctx: AuthStateContext) {
+    this.fetchUser(ctx);
   }
 
   @Selector()
-  static isAuthenticated(state: AuthUser.AuthStateModel): boolean {
-    return !!state.token;
+  static loading(state: AuthStateModel): boolean {
+    return state.loading;
   }
 
-  constructor() {}
+  @Selector()
+  static user(state: AuthStateModel): Partial<User> {
+    return state.user;
+  }
 
-  // @Action(AuthUser.Login)
-  // login(ctx: StateContext<AuthUser.AuthStateModel>, action: AuthUser.Login) {
-  //   return this.authService.login(action.payload).pipe(
-  //     tap((result: { token: string }) => {
-  //       ctx.patchState({
-  //         token: result.token,
-  //         username: action.payload.username,
-  //       });
-  //     })
-  //   );
-  // }
+  @Selector()
+  static isAuthenticated(state: AuthStateModel): boolean {
+    return Boolean(state?.user?.id);
+  }
+
+  @Action(AuthUser.AuthLogin)
+  login(ctx: AuthStateContext, action: AuthUser.AuthLogin) {
+    return this.userLoginMutation.mutate({ input: action.payload }).pipe(
+      mergeMap(async ({ data }) => {
+        console.log(data);
+        ctx.dispatch(
+          new JwtTokenActions.SetRefreshToken(
+            data?.login?.refreshToken as string
+          )
+        );
+        ctx.dispatch(
+          new JwtTokenActions.SetAccessToken(data?.login?.accessToken as string)
+        );
+      })
+    );
+  }
 }
