@@ -1,13 +1,17 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { QueryRef } from 'apollo-angular';
+import { Subscription } from 'rxjs';
 import {
   AddNewMessageGQL,
   Message,
   MessageAddedDocument,
   MessagesGQL,
-  MessagesQuery,
-  MessagesQueryVariables,
 } from 'src/generated/graphql';
 
 @Component({
@@ -15,8 +19,9 @@ import {
   templateUrl: './messages.component.html',
   styleUrls: ['./messages.component.scss'],
 })
-export class MessagesComponent implements OnInit {
-  private messageQuery: QueryRef<MessagesQuery, MessagesQueryVariables>;
+export class MessagesComponent implements OnInit, OnDestroy {
+  private messageQuerySubscription: Subscription;
+
   messages: Message[];
   loading: boolean;
   errors: any;
@@ -27,9 +32,7 @@ export class MessagesComponent implements OnInit {
     private messageGQL: MessagesGQL,
     private messageMutation: AddNewMessageGQL,
     private formBuilder: FormBuilder
-  ) {
-    this.messageQuery = this.messageGQL.watch({ take: 20 });
-  }
+  ) {}
 
   newMsgForm = this.formBuilder.group({
     content: '',
@@ -59,25 +62,32 @@ export class MessagesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.messageQuery.valueChanges.subscribe(({ data, loading, errors }) => {
-      this.loading = loading;
-      this.messages = data?.messages;
-      this.errors = errors;
-      this.scrollToLatest();
-      if (!loading && !errors?.length) {
-        this.messageQuery.subscribeToMore({
-          document: MessageAddedDocument,
-          updateQuery: (prev, { subscriptionData }: any) => {
-            if (!subscriptionData.data) return prev;
-            const newItem = subscriptionData.data.messageAdded;
+    let messageQuery = this.messageGQL.watch({ take: 20 });
+    this.messageQuerySubscription = messageQuery.valueChanges.subscribe(
+      ({ data, loading, errors }) => {
+        this.loading = loading;
+        this.messages = data?.messages;
+        this.errors = errors;
+        this.scrollToLatest();
+        if (!loading && !errors?.length) {
+          messageQuery.subscribeToMore({
+            document: MessageAddedDocument,
+            updateQuery: (prev, { subscriptionData }: any) => {
+              if (!subscriptionData.data) return prev;
+              const newItem = subscriptionData.data.messageAdded;
 
-            this.scrollToLatest();
-            return Object.assign({}, prev, {
-              messages: [...prev.messages, newItem],
-            });
-          },
-        });
+              this.scrollToLatest();
+              return Object.assign({}, prev, {
+                messages: [...prev.messages, newItem],
+              });
+            },
+          });
+        }
       }
-    });
+    );
+  }
+
+  ngOnDestroy() {
+    this.messageQuerySubscription.unsubscribe();
   }
 }

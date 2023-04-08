@@ -1,14 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Action, NgxsOnInit, Selector, State, StateContext } from '@ngxs/store';
-import { mergeMap } from 'rxjs';
-import {
-  LoginGQL,
-  RegisterGQL,
-  User,
-  UserProfileGQL,
-} from 'src/generated/graphql';
-import { JwtTokenActions } from '../jwtTokens/jwtTokens.actions';
-import { AuthUser } from './authUser.actions';
+import { Apollo } from 'apollo-angular';
+import { User, UserProfileGQL } from 'src/generated/graphql';
+import { AuthUserActions } from './authUser.actions';
 
 interface AuthStateModel {
   loading: boolean;
@@ -27,18 +21,29 @@ export type AuthStateContext = StateContext<AuthStateModel>;
 @Injectable()
 export class AuthState implements NgxsOnInit {
   constructor(
-    private readonly userProfileQuery: UserProfileGQL,
-    private readonly userLoginMutation: LoginGQL,
-    private readonly userRegisterMutation: RegisterGQL
+    private readonly apollo: Apollo,
+    private readonly userProfileQuery: UserProfileGQL
   ) {}
 
   private fetchUser(ctx: AuthStateContext) {
-    this.userProfileQuery.fetch().subscribe(({ data, loading }) => {
-      ctx.patchState({
-        loading,
-        user: data?.userProfile ?? {},
+    this.userProfileQuery
+      .fetch(
+        {},
+        {
+          fetchPolicy: 'network-only',
+        }
+      )
+      .subscribe(({ data, loading }) => {
+        ctx.patchState({
+          loading,
+          user: data?.userProfile ?? {},
+        });
       });
-    });
+  }
+
+  private async clearStore() {
+    await this.apollo.client.resetStore();
+    await this.apollo.client.cache.reset();
   }
 
   ngxsOnInit(ctx: AuthStateContext) {
@@ -60,20 +65,9 @@ export class AuthState implements NgxsOnInit {
     return Boolean(state?.user?.id);
   }
 
-  @Action(AuthUser.AuthLogin)
-  login(ctx: AuthStateContext, action: AuthUser.AuthLogin) {
-    return this.userLoginMutation.mutate({ input: action.payload }).pipe(
-      mergeMap(async ({ data }) => {
-        console.log(data);
-        ctx.dispatch(
-          new JwtTokenActions.SetRefreshToken(
-            data?.login?.refreshToken as string
-          )
-        );
-        ctx.dispatch(
-          new JwtTokenActions.SetAccessToken(data?.login?.accessToken as string)
-        );
-      })
-    );
+  @Action(AuthUserActions.Reset)
+  async reset(ctx: AuthStateContext) {
+    await this.clearStore();
+    this.fetchUser(ctx);
   }
 }

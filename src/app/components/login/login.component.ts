@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { Store } from '@ngxs/store';
-import { AuthUser } from 'src/app/store/authUser/authUser.actions';
+import { JwtTokenActions } from 'src/app/store/jwtTokens/jwtTokens.actions';
 import { LoginInput } from 'src/generated/graphql';
 
 @Component({
@@ -20,7 +20,7 @@ export class LoginComponent {
   login() {
     if (this.loginForm.value.email && this.loginForm.value.password) {
       this.store.dispatch(
-        new AuthUser.AuthLogin({
+        new JwtTokenActions.AuthLogin({
           email: this.loginForm.value.email,
           password: this.loginForm.value.password,
         })

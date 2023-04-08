@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { JwtTokens } from '../../../generated/graphql';
+import { Apollo } from 'apollo-angular';
+import { mergeMap } from 'rxjs';
+import { JwtTokens, LoginGQL, RegisterGQL } from '../../../generated/graphql';
+import { AuthUserActions } from '../authUser/authUser.actions';
 import { JwtTokenActions } from './jwtTokens.actions';
 
 export type JwtStateContext = StateContext<JwtTokens>;
@@ -14,6 +17,11 @@ export type JwtStateContext = StateContext<JwtTokens>;
 })
 @Injectable()
 export class JwtTokenState {
+  constructor(
+    private readonly userLoginMutation: LoginGQL,
+    private readonly userRegisterMutation: RegisterGQL
+  ) {}
+
   @Selector()
   static getRefreshToken(state: JwtTokens): string {
     return state.refreshToken;
@@ -24,20 +32,25 @@ export class JwtTokenState {
     return state.accessToken;
   }
 
-  @Action(JwtTokenActions.SetRefreshToken)
-  setRefreshToken(
-    ctx: JwtStateContext,
-    action: JwtTokenActions.SetRefreshToken
-  ) {
-    ctx.patchState({
-      refreshToken: action.refreshToken,
-    });
+  @Action(JwtTokenActions.AuthLogin)
+  login(ctx: JwtStateContext, action: JwtTokenActions.AuthLogin) {
+    return this.userLoginMutation.mutate({ input: action.payload }).pipe(
+      mergeMap(async ({ data }) => {
+        ctx.setState({
+          refreshToken: data?.login?.refreshToken as string,
+          accessToken: data?.login?.accessToken as string,
+        });
+        ctx.dispatch(new AuthUserActions.Reset());
+      })
+    );
   }
 
-  @Action(JwtTokenActions.SetAccessToken)
-  setAccessToken(ctx: JwtStateContext, action: JwtTokenActions.SetAccessToken) {
-    ctx.patchState({
-      accessToken: action.accessToken,
+  @Action(JwtTokenActions.Logout)
+  logout(ctx: JwtStateContext) {
+    ctx.setState({
+      accessToken: '',
+      refreshToken: '',
     });
+    ctx.dispatch(new AuthUserActions.Reset());
   }
 }

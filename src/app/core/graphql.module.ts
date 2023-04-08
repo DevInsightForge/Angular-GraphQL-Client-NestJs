@@ -1,6 +1,6 @@
-import { HttpHeaders } from '@angular/common/http';
 import { NgModule, isDevMode } from '@angular/core';
-import { InMemoryCache, split } from '@apollo/client/core';
+import { InMemoryCache, from, split } from '@apollo/client/core';
+import { setContext } from '@apollo/client/link/context';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { NgxsModule, Store } from '@ngxs/store';
@@ -19,40 +19,49 @@ const BASE_URL = isDevMode()
 })
 export class GraphQLModule {
   constructor(apollo: Apollo, httpLink: HttpLink, store: Store) {
-    const getToken = (): string => {
+    const getAccessToken = (): string => {
       const { accessToken = '' } = store?.selectSnapshot(JwtTokenState);
       return `Bearer ${accessToken}`;
     };
+
+    const authLink = setContext((_, { headers }) => {
+      return {
+        headers: {
+          ...headers,
+          authorization: getAccessToken(),
+        },
+      };
+    });
+
     // Create an http link:
     const http = httpLink?.create({
       uri: BASE_URL,
-      headers: new HttpHeaders({
-        Authorization: getToken(),
-      }),
     });
 
     // Create a WebSocket link:
-    const ws = new GraphQLWsLink(
+    const websocket = new GraphQLWsLink(
       createClient({
         url: BASE_URL.replace('http', 'ws'),
-        connectionParams: {
-          Authorization: getToken(),
+        connectionParams: async () => {
+          return {
+            authorization: getAccessToken(),
+          };
         },
       })
     );
 
-    const link = split(
+    const connectionLink = split(
       // split based on operation type
       ({ query }) => {
         const { kind, operation }: any = getMainDefinition(query);
         return kind === 'OperationDefinition' && operation === 'subscription';
       },
-      ws,
+      websocket,
       http
     );
 
     apollo.create({
-      link,
+      link: from([authLink, connectionLink]),
       cache: new InMemoryCache(),
       credentials: 'include',
       defaultOptions: {

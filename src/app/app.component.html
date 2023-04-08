@@ -1,8 +1,11 @@
 <div id="app-container">
-  <span>
-    {{ user.email }}
-  </span>
-  <span>{{ user.id }}</span>
+  <div *ngIf="user.id">
+    <span>
+      {{ user.email }}
+    </span>
+    <span>{{ user.id }}</span>
+    <button (click)="logOut()">Logout</button>
+  </div>
   <div>
     <a [routerLink]="['/']" routerLinkActive="router-link-active">Home</a>
     <a [routerLink]="['/auth']" routerLinkActive="router-link-active">Login</a>
