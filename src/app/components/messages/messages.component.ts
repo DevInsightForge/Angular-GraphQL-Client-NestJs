@@ -21,6 +21,7 @@ import {
 })
 export class MessagesComponent implements OnInit, OnDestroy {
   private messageQuerySubscription: Subscription;
+  private cancelSubscription: () => void;
 
   messages: Message[];
   loading: boolean;
@@ -69,25 +70,26 @@ export class MessagesComponent implements OnInit, OnDestroy {
         this.messages = data?.messages;
         this.errors = errors;
         this.scrollToLatest();
-        if (!loading && !errors?.length) {
-          messageQuery.subscribeToMore({
-            document: MessageAddedDocument,
-            updateQuery: (prev, { subscriptionData }: any) => {
-              if (!subscriptionData.data) return prev;
-              const newItem = subscriptionData.data.messageAdded;
-
-              this.scrollToLatest();
-              return Object.assign({}, prev, {
-                messages: [...prev.messages, newItem],
-              });
-            },
-          });
-        }
       }
     );
+    if (!this.loading && !this.errors?.length) {
+      this.cancelSubscription = messageQuery.subscribeToMore({
+        document: MessageAddedDocument,
+        updateQuery: (prev, { subscriptionData }: any) => {
+          if (!subscriptionData.data) return prev;
+          const newItem = subscriptionData.data.messageAdded;
+
+          this.scrollToLatest();
+          return Object.assign({}, prev, {
+            messages: [...prev.messages, newItem],
+          });
+        },
+      });
+    }
   }
 
   ngOnDestroy() {
     this.messageQuerySubscription.unsubscribe();
+    this.cancelSubscription();
   }
 }

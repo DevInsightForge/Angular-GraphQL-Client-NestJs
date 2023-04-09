@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Action, Selector, State, StateContext } from '@ngxs/store';
-import { Apollo } from 'apollo-angular';
 import { mergeMap } from 'rxjs';
 import { JwtTokens, LoginGQL, RegisterGQL } from '../../../generated/graphql';
 import { AuthUserActions } from '../authUser/authUser.actions';
